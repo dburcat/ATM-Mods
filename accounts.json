@@ -1,0 +1,27 @@
+{
+  "952141": {
+    "customer_number": 952141,
+    "pin_number": 191904,
+    "accounts": {
+      "Checking": 1000,
+      "Savings": 5000
+    }
+  },
+  "123": {
+    "customer_number": 123,
+    "pin_number": 123,
+    "accounts": {
+      "Checking": 20000,
+      "Savings": 5000.0
+    }
+  },
+  "987": {
+    "customer_number": 987,
+    "pin_number": 1234,
+    "accounts": {
+      "Checking": 0.0,
+      "Savings": 0.0,
+      "kris": 1000000.0
+    }
+  }
+}

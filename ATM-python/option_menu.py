@@ -1,8 +1,12 @@
 from account import Account
+import json
+import os
 
 
 class OptionMenu:
     """Handles user interaction and menu navigation for the ATM."""
+
+    DATA_FILE = "accounts.json"
 
     def __init__(self):
         self._data = {}  # dict mapping customer_number (int) -> Account
@@ -258,13 +262,59 @@ class OptionMenu:
         self.get_login()
 
     # ------------------------------------------------------------------
+    # JSON Persistence Methods
+    # ------------------------------------------------------------------
+
+    def save_accounts(self):
+        """Save all accounts to JSON file."""
+        accounts_data = {}
+        for customer_number, account in self._data.items():
+            accounts_data[str(customer_number)] = {
+                "customer_number": account._customer_number,
+                "pin_number": account._pin_number,
+                "accounts": account._accounts
+            }
+        
+        with open(self.DATA_FILE, 'w') as f:
+            json.dump(accounts_data, f, indent=2)
+        print(f"\nAccounts saved to {self.DATA_FILE}")
+
+    def load_accounts(self):
+        """Load all accounts from JSON file."""
+        if os.path.exists(self.DATA_FILE):
+            try:
+                with open(self.DATA_FILE, 'r') as f:
+                    accounts_data = json.load(f)
+                
+                for customer_number_str, data in accounts_data.items():
+                    customer_number = int(customer_number_str)
+                    account = Account(
+                        customer_number=data["customer_number"],
+                        pin_number=data["pin_number"]
+                    )
+                    account._accounts = data["accounts"]
+                    self._data[customer_number] = account
+                
+                print(f"\nLoaded {len(self._data)} accounts from {self.DATA_FILE}")
+            except Exception as e:
+                print(f"\nError loading accounts: {e}")
+                print("Starting with empty account list.")
+        else:
+            print(f"\nNo existing account file found. Starting fresh.")
+
+    # ------------------------------------------------------------------
     # Main Menu Entry Point
     # ------------------------------------------------------------------
 
     def main_menu(self):
-        # Pre-populated test accounts
-        self._data[952141] = Account(952141, 191904, 1000, 5000)
-        self._data[123] = Account(123, 123, 20000, 50000)
+        # Load existing accounts from JSON
+        self.load_accounts()
+        
+        # If no accounts loaded, initialize with test accounts
+        if not self._data:
+            print("\nInitializing with test accounts...")
+            self._data[952141] = Account(952141, 191904, 1000, 5000)
+            self._data[123] = Account(123, 123, 20000, 50000)
 
         while True:
             try:
@@ -282,4 +332,6 @@ class OptionMenu:
             except ValueError:
                 print("\nInvalid Choice.")
 
+        # Save accounts before exiting
+        self.save_accounts()
         print("\nThank You for using this ATM.\n")
