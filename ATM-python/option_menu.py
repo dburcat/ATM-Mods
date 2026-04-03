@@ -39,13 +39,19 @@ class OptionMenu:
                 print("\nSelect the account you want to access: ")
                 print(" Type 1 - Checking Account")
                 print(" Type 2 - Savings Account")
-                print(" Type 3 - Exit")
+                print(" Type 3 - Account Balances")
+                print(" Type 4 - Exit")
                 selection = int(input("\nChoice: "))
                 if selection == 1:
                     self.get_checking(acc)
                 elif selection == 2:
                     self.get_saving(acc)
                 elif selection == 3:
+                    print("\nAccount Balances:")
+                    checking_balance, saving_balance = acc.get_balances()
+                    print(" Checking Account Balance: " + self._format_money(checking_balance))
+                    print(" Savings Account Balance: " + self._format_money(saving_balance))
+                elif selection == 4:
                     return
                 else:
                     print("\nInvalid Choice.")

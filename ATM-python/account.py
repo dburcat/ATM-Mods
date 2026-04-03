@@ -6,6 +6,7 @@ class Account:
         self._pin_number = pin_number
         self._checking_balance = checking_balance
         self._saving_balance = saving_balance
+        self._balances = (checking_balance, saving_balance)
 
     # ------------------------------------------------------------------
     # Getters and Setters
@@ -30,6 +31,9 @@ class Account:
 
     def get_saving_balance(self):
         return self._saving_balance
+    
+    def get_balances(self):
+        return self._balances
 
     # ------------------------------------------------------------------
     # Balance Calculation Methods
