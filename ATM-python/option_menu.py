@@ -101,8 +101,9 @@ class OptionMenu:
                 # Display summary and options
                 total_balance = acc.get_total_balance()
                 print(f" Type {len(account_names) + 1} - View All Balances ({self._format_money(total_balance)})")
-                print(f" Type {len(account_names) + 2} - Create New Account")
-                print(f" Type {len(account_names) + 3} - Exit")
+                print(f" Type {len(account_names) + 2} - View Transaction History")
+                print(f" Type {len(account_names) + 3} - Create New Account")
+                print(f" Type {len(account_names) + 4} - Exit")
                 
                 selection = int(input("\nChoice: "))
                 
@@ -112,8 +113,10 @@ class OptionMenu:
                 elif selection == len(account_names) + 1:
                     self.view_all_balances(acc)
                 elif selection == len(account_names) + 2:
-                    self.create_new_account(acc)
+                    self.view_transaction_history(acc)
                 elif selection == len(account_names) + 3:
+                    self.create_new_account(acc)
+                elif selection == len(account_names) + 4:
                     return
                 else:
                     print("\nInvalid Choice.")
@@ -260,6 +263,44 @@ class OptionMenu:
             balance = acc.get_balance(account_name)
             print(f" {account_name}: {self._format_money(balance)}")
         print(f" Total: {self._format_money(acc.get_total_balance())}")
+
+    def view_transaction_history(self, acc):
+        """Display transaction history for the logged-in customer."""
+        customer_number = acc._customer_number
+        transactions = self._get_customer_transactions(customer_number)
+        
+        if not transactions:
+            print(f"\nNo transaction history found for customer {customer_number}.")
+            return
+        
+        print(f"\n{'='*80}")
+        print(f"Transaction History for Customer {customer_number}")
+        print(f"{'='*80}")
+        for transaction in transactions:
+            print(transaction)
+        print(f"{'='*80}\n")
+        
+        # Pause for user to read
+        input("Press Enter to continue...")
+
+    def _get_customer_transactions(self, customer_number):
+        """Read log file and return transactions for a specific customer."""
+        transactions = []
+        
+        if not os.path.exists(self.LOG_FILE):
+            return transactions
+        
+        try:
+            with open(self.LOG_FILE, 'r') as f:
+                for line in f:
+                    # Check if this line contains the customer number
+                    if f"Customer {customer_number}" in line:
+                        # Clean up the log line for display
+                        transactions.append(line.strip())
+        except Exception as e:
+            print(f"\nError reading transaction history: {e}")
+        
+        return transactions
 
     def create_new_account(self, acc):
         """Create a new account for the logged-in user."""
