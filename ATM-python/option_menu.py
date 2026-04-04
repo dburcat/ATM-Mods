@@ -1,15 +1,18 @@
 from account import Account
 import json
 import os
+import logging
 
 
 class OptionMenu:
     """Handles user interaction and menu navigation for the ATM."""
 
     DATA_FILE = "accounts.json"
+    LOG_FILE = "transactions.log"
 
     def __init__(self):
         self._data = {}  # dict mapping customer_number (int) -> Account
+        self.logger = self._setup_logger()
 
     @staticmethod
     def _format_money(amount):
@@ -26,6 +29,41 @@ class OptionMenu:
             return value
         except ValueError:
             return None
+
+    def _setup_logger(self):
+        """Configure and return a logger for transaction logging."""
+        logger = logging.getLogger('ATM')
+        logger.setLevel(logging.INFO)
+
+        # Create file handler
+        fh = logging.FileHandler(self.LOG_FILE)
+        fh.setLevel(logging.INFO)
+
+        # Create formatter
+        formatter = logging.Formatter(
+            '%(asctime)s - Customer %(customer_id)s - %(transaction_type)s - %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
+        )
+        fh.setFormatter(formatter)
+
+        # Add handler to logger (only if not already added)
+        if not logger.handlers:
+            logger.addHandler(fh)
+
+        return logger
+
+    def log_transaction(self, customer_number, transaction_type, account_name, amount, new_balance, target_account=None):
+        """Log a transaction using the logging module."""
+        if transaction_type == "TRANSFER":
+            message = f"TRANSFER - {amount:.2f} from {account_name} to {target_account} (Balance: {new_balance:.2f})"
+        else:
+            message = f"{transaction_type} - Amount: {amount:.2f} in {account_name} (New Balance: {new_balance:.2f})"
+        
+        # Use extra dict to pass custom fields to the formatter
+        self.logger.info(
+            message,
+            extra={'customer_id': customer_number, 'transaction_type': transaction_type}
+        )
 
     # ------------------------------------------------------------------
     # Main Login Flow
@@ -136,6 +174,7 @@ class OptionMenu:
             
             if balance >= amount:
                 new_balance = acc.withdraw(account_name, amount)
+                self.log_transaction(acc._customer_number, "WITHDRAW", account_name, amount, new_balance)
                 print(f"\nWithdrawal successful!")
                 print(f"Current {account_name} Account Balance: {self._format_money(new_balance)}")
                 break
@@ -158,6 +197,7 @@ class OptionMenu:
                 continue
             
             new_balance = acc.deposit(account_name, amount)
+            self.log_transaction(acc._customer_number, "DEPOSIT", account_name, amount, new_balance)
             print(f"\nDeposit successful!")
             print(f"Current {account_name} Account Balance: {self._format_money(new_balance)}")
             break
@@ -197,6 +237,7 @@ class OptionMenu:
                     
                     if source_balance >= amount:
                         if acc.transfer(account_name, target_account, amount):
+                            self.log_transaction(acc._customer_number, "TRANSFER", account_name, amount, acc.get_balance(account_name), target_account)
                             print(f"\nTransfer successful!")
                             print(f"Current {account_name} Account Balance: {self._format_money(acc.get_balance(account_name))}")
                             print(f"Current {target_account} Account Balance: {self._format_money(acc.get_balance(target_account))}")
